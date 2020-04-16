@@ -26,8 +26,37 @@ class ApplicationController < Sinatra::Base
   end
 
   get '/account' do
-    @user = User.find(session[:user_id])
-    erb :account
+    if session[:user_id]
+      @user = User.find(session[:user_id])
+      erb :account
+    else
+      redirect '/failure'
+    end
+  end
+
+  patch '/account/deposit' do
+    user = User.find(session[:user_id])
+    user.balance += params[:deposit].to_f
+    if user.save
+      redirect '/account'
+    else
+      redirect '/error'
+    end
+  end
+
+  patch '/account/withdraw' do
+    user = User.find(session[:user_id])
+    withdraw = params[:withdraw].to_f
+    if withdraw <= user.balance
+      user.balance -= withdraw
+      if user.save
+        redirect '/account'
+      else
+        redirect '/error'
+      end
+    else
+      redirect '/account'
+    end
   end
 
 
